@@ -26,6 +26,7 @@ import os
 os.environ['JAVA_HOME']='C:\Program Files\Java\jdk-11.0.8'
 findspark.init('D:\spark')
 from pyspark import SparkConf, SparkContext
+from procedural_update_20190827 import settings
 #from continuous import get_h ## for info_gain only
 
 
@@ -600,12 +601,14 @@ def replace_varname_to_id(path_list):
         current=ft_list[i]
         for j in range(len(current)):
             current_ft = current[j]
-            if current_ft == 'bid_price':
-                ret[i][j] = 'bid_id'
-            elif current_ft == 'kadpage_image_profile_aesthetics':
-                ret[i][j] = 'aesthetics_id'
-            elif current_ft == 'kadpage_image_profile_quality':
-                ret[i][j] = 'quality_id'
+            if current_ft in settings.continuous_feats:
+                ret[i][j] = current_ft + '(binned)'
+            # if current_ft == 'bid_price':
+            #     ret[i][j] = 'bid_id'
+            # elif current_ft == 'kadpage_image_profile_aesthetics':
+            #     ret[i][j] = 'aesthetics_id'
+            # elif current_ft == 'kadpage_image_profile_quality':
+            #     ret[i][j] = 'quality_id'
     return ret
 
 ############################
@@ -639,6 +642,7 @@ def get_feature_bias(dat,target_ft,weight=None,multi_ft_cutoff=None):
     if isinstance(target_ft,list):
         for target in target_ft:
             if target not in dat.columns:
+                print(target, dat.columns)
                 raise ValueError('Invalid Target.')
         dat["TargetGroupId"] = dat.groupby(target_ft).grouper.group_info[0]
         target_ft = "TargetGroupId"
